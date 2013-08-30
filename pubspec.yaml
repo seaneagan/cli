@@ -3,5 +3,5 @@ version: 0.0.1
 author: Sean Eagan <seaneagan1@gmail.com
 description: Iinterfaces for sending and receiving cli commands.
 homepage: http://github.com/seaneagan/cli
-dependencies:
+dev_dependencies:
   unittest: any
