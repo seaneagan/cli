@@ -8,8 +8,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:cli/cli.dart';
 import 'package:unittest/mock.dart';
+import 'package:meta/meta.dart';
 
+@proxy
+/// A mock implementation of [Runner].
 class MockRunner extends Mock implements Runner {
+
+  /// The [handler] is called synchronously to mock [Runner.runSync], and
+  /// asynchronously to mock [Runner.run]. It cannot yet mock [Runner.start].
   MockRunner(MockCommandHandler handler)
       : super.spy(new _MockRunner(handler));
 }
@@ -29,7 +35,7 @@ class _MockRunner implements Runner {
       {Environment environment: const Environment(),
        Encoding stdoutEncoding: SYSTEM_ENCODING,
        Encoding stderrEncoding: SYSTEM_ENCODING}) =>
-          new Future(() => runSync(command));
+          new Future(() => handler(command));
 
   ProcessResult runSync(
     Command command,
@@ -39,6 +45,9 @@ class _MockRunner implements Runner {
           handler(command);
 }
 
+/// An interface for defining [MockRunner] behavior.
+// TODO: Add an `Environment environment` parameter.
+// TODO: Rename to `MockRunnerHandler` ?
 typedef ProcessResult MockCommandHandler(
     Command command);
 

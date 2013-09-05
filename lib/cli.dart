@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Utilities for working with the command line.
 library cli;
 
 import 'dart:io';
@@ -9,6 +10,9 @@ import 'dart:async';
 import 'dart:convert';
 
 /// A cli command which can be run with a [Runner].
+///
+/// For field descriptions, see corresponding parameters in
+/// [Process.start], [Process.run], and [Process.runSync].
 class Command {
 
   final String executable;
@@ -21,6 +25,9 @@ class Command {
 }
 
 /// An environment in which a command can be run.
+///
+/// For field descriptions, see corresponding parameters in
+/// [Process.start], [Process.run], and [Process.runSync].
 class Environment {
 
   final String workingDirectory;
@@ -37,6 +44,7 @@ class Environment {
 
 var _runner = new Runner();
 
+/// Convenience for [Runner.start].
 Future<Process> start(
     Command command,
     {Environment environment: const Environment()}) =>
@@ -44,6 +52,7 @@ Future<Process> start(
             command,
             environment: environment);
 
+/// Convenience for [Runner.run].
 Future<ProcessResult> run(
     Command command,
     {Environment environment: const Environment(),
@@ -55,19 +64,22 @@ Future<ProcessResult> run(
               stdoutEncoding: stdoutEncoding,
               stderrEncoding: stderrEncoding);
 
-Future<ProcessResult> runSync(
+/// Convenience for [Runner.runSync].
+ProcessResult runSync(
     Command command,
     {Environment environment: const Environment(),
       Encoding stdoutEncoding: SYSTEM_ENCODING,
       Encoding stderrEncoding: SYSTEM_ENCODING}) =>
-          _runner.run(
+          _runner.runSync(
               command,
               environment: environment,
               stdoutEncoding: stdoutEncoding,
               stderrEncoding: stderrEncoding);
 
+/// Runs [Command]s in [Environment]s.
 class Runner {
 
+  /// Forwards [command] and [environment] fields to [Process.start].
   Future<Process> start(
       Command command,
       {Environment environment: const Environment()}) => Process.start(
@@ -78,6 +90,7 @@ class Runner {
       includeParentEnvironment: environment.includeParentEnvironment,
       runInShell: environment.runInShell);
 
+  /// Forwards [command] and [environment] fields to [Process.run].
   Future<ProcessResult> run(
       Command command,
       {Environment environment: const Environment(),
@@ -92,6 +105,7 @@ class Runner {
       stdoutEncoding: stdoutEncoding,
       stderrEncoding: stderrEncoding);
 
+  /// Forwards [command] and [environment] fields to [Process.runSync].
   ProcessResult runSync(
       Command command,
       {Environment environment: const Environment(),
