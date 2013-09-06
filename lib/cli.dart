@@ -20,6 +20,7 @@ class Command {
 
   Command(this.executable, this.arguments);
 
+  /// Returns the associated command line text.
   String toString() =>
       '$executable ${arguments.join(' ')}';
 }
