@@ -1,4 +1,5 @@
 
+/// Convenience methods for using a standard [Runner].
 part of cli;
 
 var _runner = new Runner();
