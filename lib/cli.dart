@@ -9,7 +9,6 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 
-part 'src/environment.dart';
 part 'src/command.dart';
 part 'src/runner.dart';
 part 'src/runner_convenience.dart';
