@@ -27,27 +27,36 @@ class _MockRunner implements Runner {
 
   Future<Process> start(
       Command command,
-      {Environment environment: const Environment()}) => new Future(() =>
-      throw new UnimplementedError('MockCommandExecutor.start'));
+      {String workingDirectory,
+       Map<String, String> environment,
+       bool includeParentEnvironment: true,
+       bool runInShell: false,
+       Encoding stdoutEncoding: SYSTEM_ENCODING,
+       Encoding stderrEncoding: SYSTEM_ENCODING}) =>
+      new Future.error(new UnimplementedError('MockCommandExecutor.start'));
 
   Future<ProcessResult> run(
       Command command,
-      {Environment environment: const Environment(),
+      {String workingDirectory,
+       Map<String, String> environment,
+       bool includeParentEnvironment: true,
+       bool runInShell: false,
        Encoding stdoutEncoding: SYSTEM_ENCODING,
        Encoding stderrEncoding: SYSTEM_ENCODING}) =>
-          new Future(() => handler(command));
+      new Future(() => handler(command));
 
   ProcessResult runSync(
     Command command,
-    {Environment environment: const Environment(),
+    {String workingDirectory,
+      Map<String, String> environment,
+      bool includeParentEnvironment: true,
+      bool runInShell: false,
       Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING}) =>
-          handler(command);
+      Encoding stderrEncoding: SYSTEM_ENCODING}) => handler(command);
 }
 
 /// An interface for defining [MockRunner] behavior.
-// TODO: Add an `Environment environment` parameter.
-// TODO: Rename to `MockRunnerHandler` ?
+// TODO: Add the rest of the [Runner.start] and friends parameters here?
 typedef ProcessResult MockCommandHandler(
     Command command);
 
