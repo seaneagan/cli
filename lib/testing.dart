@@ -8,10 +8,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:cli/cli.dart';
 import 'package:unittest/mock.dart';
-import 'package:meta/meta.dart';
 
-@proxy
 /// A mock implementation of [Runner].
+@proxy
 class MockRunner extends Mock implements Runner {
 
   /// The [handler] is called synchronously to mock [Runner.runSync], and

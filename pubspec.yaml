@@ -4,6 +4,6 @@ author: Sean Eagan <seaneagan1@gmail.com>
 description: Iinterfaces for sending and receiving cli commands.
 homepage: http://github.com/seaneagan/cli
 dependencies:
-  meta: any
+  args: any
 dev_dependencies:
   unittest: any

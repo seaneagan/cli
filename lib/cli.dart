@@ -5,10 +5,17 @@
 /// Utilities for working with the command line.
 library cli;
 
-import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:mirrors';
+import 'dart:io';
+import 'package:args/args.dart';
+import 'package:path/path.dart';
+import 'package:cli/src/invocation_maker.dart';
 
 part 'src/command.dart';
 part 'src/runner.dart';
 part 'src/runner_convenience.dart';
+part 'src/script.dart';
+part 'src/util.dart';
+part 'src/args_codec.dart';
