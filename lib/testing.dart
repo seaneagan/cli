@@ -17,6 +17,9 @@ class MockRunner extends Mock implements Runner {
   /// asynchronously to mock [Runner.run]. It cannot yet mock [Runner.start].
   MockRunner(MockCommandHandler handler)
       : super.spy(new _MockRunner(handler));
+
+  // TODO: Remove once http://dartbug.com/13410 is implemented.
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MockRunner implements Runner {

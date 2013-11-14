@@ -18,13 +18,13 @@ main() {
     group('basic', () {
 
       test('no args', () {
-        new Script(() {_happened = true;}).execute([]);
+        new SimpleScript(() {_happened = true;}).execute([]);
         expect(_happened, true);
       });
 
       test('flag from bool', () {
         var flagValue;
-        new Script(({bool flag}) {
+        new SimpleScript(({bool flag}) {
           flagValue = flag;
         }).execute(['--flag']);
         expect(flagValue, true);
@@ -32,7 +32,7 @@ main() {
 
       test('option from String', () {
         var optionValue;
-        new Script(({String option}) {
+        new SimpleScript(({String option}) {
           optionValue = option;
         }).execute(['--option', 'value']);
         expect(optionValue, 'value');
@@ -40,7 +40,7 @@ main() {
 
       test('flag from Flag', () {
         var flagValue;
-        new Script(({@Flag() flag}) {
+        new SimpleScript(({@Flag() flag}) {
           flagValue = flag;
         }).execute(['--flag']);
         expect(flagValue, true);
@@ -48,7 +48,7 @@ main() {
 
       test('option from Option', () {
         var optionValue;
-        new Script(({@Option() option}) {
+        new SimpleScript(({@Option() option}) {
           optionValue = option;
         }).execute(['--option', 'value']);
         expect(optionValue, 'value');
@@ -57,7 +57,7 @@ main() {
       test('positionals', () {
         var firstValue;
         var secondValue;
-        new Script((String first, String second, {bool flag}) {
+        new SimpleScript((String first, String second, {bool flag}) {
           firstValue = first;
           secondValue = second;
         }).execute(['--flag', 'first', 'second']);
@@ -67,13 +67,22 @@ main() {
 
       test('rest from Rest', () {
         var firstValue;
-        new Script((String first, @Rest() rest) {
+        new SimpleScript((String first, @Rest() rest) {
           firstValue = first;
           _lastSeenRest = rest;
         }).execute(['first', 'second', 'third', 'fourth']);
         expect(firstValue, 'first');
         expect(_lastSeenRest, ['second', 'third', 'fourth']);
       });
+
+      test('dashed arg', () {
+        var flagValue;
+        new SimpleScript(({bool dashedFlag}) {
+          flagValue = dashedFlag;
+        }).execute(['--dashed-flag']);
+        expect(flagValue, true);
+      });
+
     });
 
     group('withCommands', () {
@@ -81,58 +90,70 @@ main() {
       Script unit;
 
       setUp(() {
-        unit = new Script.withCommands(CommandScript);
-        CommandScript._commandHappened = false;
+        unit = new CommandScript(CommandScriptTest);
+        CommandScriptTest._commandHappened = false;
+        CommandScriptTest._dashedCommandHappened = false;
       });
 
       test('default values', () {
         unit.execute(['command']);
-        expect(CommandScript._commandHappened, isTrue);
-        expect(CommandScript._lastSeen.flag, false);
-        expect(CommandScript._lastSeen.option, 'default');
+        expect(CommandScriptTest._commandHappened, isTrue);
+        expect(CommandScriptTest._lastSeen.flag, false);
+        expect(CommandScriptTest._lastSeen.option, 'default');
       });
 
       test('args resolved', () {
         unit.execute(['--flag', '--option', 'value', 'command']);
-        expect(CommandScript._commandHappened, isTrue);
-        expect(CommandScript._lastSeen.flag, true);
-        expect(CommandScript._lastSeen.option, 'value');
+        expect(CommandScriptTest._commandHappened, isTrue);
+        expect(CommandScriptTest._lastSeen.flag, true);
+        expect(CommandScriptTest._lastSeen.option, 'value');
       });
 
-      test('args resolved', () {
+      test('rest', () {
         unit.execute(['command', '1', '2']);
-        expect(CommandScript._commandHappened, isTrue);
+        expect(CommandScriptTest._commandHappened, isTrue);
         expect(_lastSeenRest, ['1', '2']);
       });
 
       test('bad base args', () {
         unit.execute(['--bogusflag', '--bogusoption', 'value', 'command']);
-        expect(CommandScript._commandHappened, isFalse);
+        expect(CommandScriptTest._commandHappened, isFalse);
       });
 
       test('no command', () {
         unit.execute([]);
-        expect(CommandScript._commandHappened, isFalse);
+        expect(CommandScriptTest._commandHappened, isFalse);
+      });
+
+      test('dashed command', () {
+        unit.execute(['dashed-command']);
+        expect(CommandScriptTest._dashedCommandHappened, isTrue);
       });
 
     });
   });
 }
 
-class CommandScript {
+class CommandScriptTest {
   final bool flag;
   final String option;
 
-  static CommandScript _lastSeen;
+  static CommandScriptTest _lastSeen;
   static bool _commandHappened;
+  static bool _dashedCommandHappened;
 
-  CommandScript({this.flag: false, this.option: 'default'});
+  CommandScriptTest({this.flag: false, this.option: 'default'});
 
-  @ScriptCommand()
-  command(@Rest() rest) {
-    CommandScript._lastSeen = this;
+  @SubCommand()
+  command(@Rest() rest, {bool commandFlag}) {
+    _lastSeen = this;
     _lastSeenRest = rest;
     _commandHappened = true;
   }
 
+  @SubCommand()
+  dashedCommand() {
+    _lastSeen = this;
+    _dashedCommandHappened = true;
+  }
 }

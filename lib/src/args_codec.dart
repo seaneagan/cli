@@ -37,7 +37,7 @@ class ArgResultsToInvocationConverter extends Converter<ArgResults, Invocation> 
     }
 
     Map<Symbol, dynamic> named = results.options.fold({}, (result, option) {
-      result[new Symbol(option)] = results[option];
+      result[new Symbol(separatorsToCamelCase.encode(option))] = results[option];
       return result;
     });
     named.remove(#defaultsTo);

@@ -46,7 +46,7 @@ ArgParser _getParserFromFunction(
 
   parameters.where((parameter) => parameter.isNamed).forEach((parameter) {
 
-    Arg arg;
+    _Arg arg;
     var type = parameter.type;
     var defaultValue;
 
@@ -58,7 +58,7 @@ ArgParser _getParserFromFunction(
     // TODO: handle List, List<String> as Options with allowMultiple = true.
 
     InstanceMirror argAnnotation = parameter.metadata.firstWhere((annotation) =>
-        annotation.reflectee is Arg, orElse: () => null);
+        annotation.reflectee is _Arg, orElse: () => null);
 
     if(argAnnotation != null) {
       arg = argAnnotation.reflectee;
@@ -74,7 +74,7 @@ ArgParser _getParserFromFunction(
       throw 'Parameter $name is not a Flag, Option, Rest, List, String, bool';
     }
 
-    _addArgToParser(parser, name, defaultValue, arg);
+    _addArgToParser(parser, separatorsToCamelCase.decode(name), defaultValue, arg);
   });
 
   if(commands != null) {
@@ -97,13 +97,13 @@ ArgParser _getParserFromClass(Type theClass) {
           d.isRegularMethod &&
           !d.isStatic);
 
-  Map<MethodMirror, ScriptCommand> subCommands = {};
+  Map<MethodMirror, SubCommand> subCommands = {};
 
   methods.forEach((methodMirror) {
     var subCommand = methodMirror.metadata
         .map((im) => im.reflectee)
         .firstWhere(
-            (v) => v is ScriptCommand,
+            (v) => v is SubCommand,
             orElse: () => null);
 
     if(subCommand != null) {
@@ -115,7 +115,9 @@ ArgParser _getParserFromClass(Type theClass) {
 
   subCommands.forEach((methodMirror, subCommand) {
     var usage = _getParserFromFunction(methodMirror);
-    commands[MirrorSystem.getName(methodMirror.simpleName)] = usage;
+    var commandName = separatorsToCamelCase
+        .decode(MirrorSystem.getName(methodMirror.simpleName));
+    commands[commandName] = usage;
   });
 
   var constructors = classMirror.declarations.values
@@ -126,7 +128,7 @@ ArgParser _getParserFromClass(Type theClass) {
   return _getParserFromFunction(unnamedConstructor, commands);
 }
 
-void _addArgToParser(ArgParser parser, String name, defaultValue, Arg arg) {
+void _addArgToParser(ArgParser parser, String name, defaultValue, _Arg arg) {
 
   var parserMirror = reflect(parser);
 
@@ -151,7 +153,7 @@ void _addArgToParser(ArgParser parser, String name, defaultValue, Arg arg) {
       .forEach(setNamedParameter);
   }
 
-  mergeProperties(Arg);
+  mergeProperties(_Arg);
 
   var suffix;
 
@@ -175,5 +177,51 @@ void _addArgToParser(ArgParser parser, String name, defaultValue, Arg arg) {
 
   var parserMethod = 'add$suffix';
 
+  print('Adding option: "$name"');
+
   parserMirror.invoke(new Symbol(parserMethod), [name], namedParameters);
+}
+
+// Returns a List whose elements are the required argument count, and whether
+// there is a Rest parameter.
+List _getPositionalParameterInfo(MethodMirror methodMirror) {
+  var positionals = methodMirror.parameters.where((parameter) =>
+      !parameter.isNamed);
+
+  // TODO: Support optional positionals.
+  if(positionals.any((positional) => positional.isOptional)) {
+    throw new UnimplementedError('Cannot use optional positional parameters.');
+  }
+  var requiredPositionals =
+      positionals.where((parameter) => !parameter.isOptional);
+
+  var isRest = false;
+  if(requiredPositionals.isNotEmpty) {
+
+    var lastFuncPositional = requiredPositionals.last;
+
+    var isRestAnnotated = lastFuncPositional.metadata
+        .map((annotation) => annotation.reflectee)
+        .any((metadata) => metadata is Rest);
+    // TODO: How to check if the type is List or List<String> ?
+    // var isList = lastFuncPositional.type == reflectClass(List);
+    isRest = isRestAnnotated;// || isList;
+  }
+
+  return [requiredPositionals.length - (isRest ? 1 : 0), isRest];
+}
+
+_getRestParameterIndex(MethodMirror methodMirror) {
+  var positionalParameterInfo = _getPositionalParameterInfo(methodMirror);
+  return positionalParameterInfo[1] ?
+      positionalParameterInfo[0] :
+        null;
+}
+
+MethodMirror _getUnnamedConstructor(ClassMirror classMirror) {
+  var constructors = classMirror.declarations.values
+  .where((d) => d is MethodMirror && d.isConstructor);
+
+  return constructors.firstWhere((constructor) =>
+      constructor.constructorName == const Symbol(''), orElse: () => null);
 }

@@ -12,6 +12,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:path/path.dart';
 import 'package:cli/src/invocation_maker.dart';
+import 'package:cli/src/string_codecs.dart';
 
 part 'src/command.dart';
 part 'src/runner.dart';
