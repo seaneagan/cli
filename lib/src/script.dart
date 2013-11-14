@@ -183,7 +183,7 @@ class CommandScript extends Script {
       return;
     }
     var commandName = commandResults.name;
-    var commandSymbol = new Symbol(separatorsToCamelCase.encode(commandName));
+    var commandSymbol = new Symbol(dashesToCamelCase.encode(commandName));
     var commandMethod = classMirror.declarations[commandSymbol] as MethodMirror;
     var commandConverter = new ArgResultsToInvocationConverter(
         _getRestParameterIndex(commandMethod), memberName: commandSymbol);

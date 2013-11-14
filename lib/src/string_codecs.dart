@@ -80,7 +80,7 @@ class CamelCaseEncoder extends Converter<List<String>, String> {
   }
 }
 
-final separatorsToCamelCase = new SeparatorCodec("-", splitter: new RegExp(r'[_-]'))
+final dashesToCamelCase = new SeparatorCodec("-", splitter: new RegExp(r'[_-]'))
     .inverted
     .fuse(new CamelCaseCodec(false));
 
@@ -93,4 +93,3 @@ String withCapitalization(String s, bool capitalized) {
       firstLetter.toLowerCase();
   return firstLetter + s.substring(1);
 }
-

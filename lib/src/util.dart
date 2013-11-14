@@ -33,6 +33,7 @@ Usage:
 void _addHelp(ArgParser parser) {
   parser.addFlag(
       'help',
+      abbr: 'h',
       help: 'Print this usage information.', negatable: false);
 }
 
@@ -41,6 +42,8 @@ ArgParser _getParserFromFunction(
     [Map<String, ArgParser> commands]) {
 
   var parser = new ArgParser();
+
+  _addHelp(parser);
 
   var parameters = methodMirror.parameters;
 
@@ -74,7 +77,7 @@ ArgParser _getParserFromFunction(
       throw 'Parameter $name is not a Flag, Option, Rest, List, String, bool';
     }
 
-    _addArgToParser(parser, separatorsToCamelCase.decode(name), defaultValue, arg);
+    _addArgToParser(parser, dashesToCamelCase.decode(name), defaultValue, arg);
   });
 
   if(commands != null) {
@@ -115,7 +118,7 @@ ArgParser _getParserFromClass(Type theClass) {
 
   subCommands.forEach((methodMirror, subCommand) {
     var usage = _getParserFromFunction(methodMirror);
-    var commandName = separatorsToCamelCase
+    var commandName = dashesToCamelCase
         .decode(MirrorSystem.getName(methodMirror.simpleName));
     commands[commandName] = usage;
   });
@@ -176,8 +179,6 @@ void _addArgToParser(ArgParser parser, String name, defaultValue, _Arg arg) {
   }
 
   var parserMethod = 'add$suffix';
-
-  print('Adding option: "$name"');
 
   parserMirror.invoke(new Symbol(parserMethod), [name], namedParameters);
 }
