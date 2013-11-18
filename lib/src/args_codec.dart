@@ -36,11 +36,13 @@ class ArgResultsToInvocationConverter extends Converter<ArgResults, Invocation> 
           ..add(positionals.sublist(_restParameterIndex));
     }
 
-    Map<Symbol, dynamic> named = results.options.fold({}, (result, option) {
-      result[new Symbol(dashesToCamelCase.encode(option))] = results[option];
-      return result;
-    });
-    named.remove(#defaultsTo);
+    Map<Symbol, dynamic> named = results
+        .options
+        .where((option) => option != _HELP)
+        .fold({}, (result, option) {
+          result[new Symbol(dashesToCamelCase.encode(option))] = results[option];
+          return result;
+        });
 
     return new InvocationMaker.method(memberName, positionals, named).invocation;
   }

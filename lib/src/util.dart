@@ -3,38 +3,63 @@ part of cli;
 
 /// Returns full usage text for the current dart script,
 /// including a [description].
-String _getFullUsage(ArgParser parser, {String description}) {
+String _getFullHelp(ArgParser parser, {String description, List<String> path}) {
 
+  if(path == null) path = const [];
   if(description == null) description = '';
-
-  if(description.isNotEmpty) {
-    description = '''$description
+  var descriptionBlock = description.isEmpty ? '' : '''
+$description
 ''';
-  }
 
+  var optionsPlaceholder = '[options]';
   var scriptName = basename(Platform.script.path);
-  var usesShebang = extension(scriptName).isNotEmpty;
-  var executable = usesShebang ? '' : 'dart ';
-  var options = parser.options.isEmpty ? '' : ''' [options]
+  var hasOptions = parser.options.isEmpty;
+  var globalOptions = hasOptions ? '' : ' $optionsPlaceholder';
+  var optionsBlock = hasOptions ? '' : '''
 
 Options:
 
 ${parser.getUsage()}''';
 
+  var commandBlock = '';
+  var commandPlaceholder = '';
+  if(path.isNotEmpty) {
+    globalOptions = '';
+    commandPlaceholder = ' ${path.join(' ')} $optionsPlaceholder';
+  } else if(parser.commands.isNotEmpty) {
+    globalOptions = '';
+    commandPlaceholder = ' command';
+    commandBlock = '''
+
+Available commands:
+
+${parser.commands.keys.map((command) => '  $command\n').join()}
+Use "$scriptName $_HELP [command]" for more information about a command.''';
+  }
+
   return '''
-
-$description
-Usage:
-
-    $executable$scriptName$options''';
+$descriptionBlock
+Usage: $scriptName$globalOptions$commandPlaceholder
+$optionsBlock
+$commandBlock
+''';
 }
 
-/// Adds a standard help option to [parser].
+const String _HELP = 'help';
+
+/// Adds a standard --help (-h) option to [parser].
+/// If [parser] has any sub-commands also add a help sub-command,
+/// and recursively [_addHelp] to all sub-commands' parsers.
 void _addHelp(ArgParser parser) {
   parser.addFlag(
-      'help',
+      _HELP,
       abbr: 'h',
       help: 'Print this usage information.', negatable: false);
+
+  if(parser.commands.isNotEmpty) {
+    parser.commands.values.forEach(_addHelp);
+    parser.addCommand(_HELP);
+  }
 }
 
 ArgParser _getParserFromFunction(
@@ -42,8 +67,6 @@ ArgParser _getParserFromFunction(
     [Map<String, ArgParser> commands]) {
 
   var parser = new ArgParser();
-
-  _addHelp(parser);
 
   var parameters = methodMirror.parameters;
 

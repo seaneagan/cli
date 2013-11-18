@@ -50,14 +50,15 @@ class Flag extends _Arg {
 /// it should be `List` or `List<String>`.
 // TODO: If dart ever gets real rest parameters, remove this.
 class Rest {
-  const Rest();
+  final String help;
+
+  const Rest({this.help});
 }
 
 /// An annotation which marks a method as corresponding to a sub-command.
 class SubCommand {
   const SubCommand();
 }
-
 
 abstract class Script {
 
@@ -68,6 +69,7 @@ abstract class Script {
   ArgParser get parser {
     if(_parser == null) {
       _parser = _getParser();
+      _addHelp(_parser);
     }
     return _parser;
   }
@@ -86,22 +88,49 @@ abstract class Script {
     ArgResults results;
     try {
       results = parser.parse(arguments);
+      if(_checkHelp(results)) return;
+      handleResults(results);
     } catch(e) {
       print('$e\n');
-      printUsage();
+      printHelp();
       exitCode = 1;
-      return;
     }
-    handleResults(results);
   }
 
   /// Handles successfully parsed [results].
   handleResults(ArgResults results);
 
-  /// Prints usage information for this script.
+  /// Prints help information for this script.
   // TODO: Integrate with Loggers.
-  printUsage() {
-    print(_getFullUsage(parser, description: description));
+  printHelp([List<String> path]) {
+    var helpParser = parser;
+
+    if(path != null) {
+      helpParser = path.fold(parser, (curr, command) =>
+          parser.commands[command]);
+    }
+    print(_getFullHelp(helpParser, description: description, path: path));
+  }
+
+  List<String> _getHelpPath(ArgResults results) {
+    var path = [];
+    var subResults = results;
+    while(true) {
+      if(subResults.options.contains(_HELP) && subResults[_HELP]) return path;
+      if(subResults.command == null) return null;
+      subResults = subResults.command;
+      path.add(subResults.name);
+    }
+    return path;
+  }
+
+  bool _checkHelp(ArgResults results) {
+    var path = _getHelpPath(results);
+    if(path != null) {
+      printHelp(path);
+      return true;
+    }
+    return false;
   }
 
 }
@@ -194,10 +223,10 @@ class CommandScript extends Script {
   /// Called if no sub-command was provided.
   ///
   /// The default implementation treats this as an error, and calls
-  /// [printUsage].
+  /// [printHelp].
   onNoSubCommand(ArgResults results) {
     print('A sub-command must be specified.\n');
-    printUsage();
+    printHelp(results);
   }
 
 }

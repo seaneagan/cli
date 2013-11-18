@@ -15,7 +15,7 @@ main() {
       _lastSeenRest = null;
     });
 
-    group('basic', () {
+    group('SimpleScript', () {
 
       test('no args', () {
         new SimpleScript(() {_happened = true;}).execute([]);
@@ -83,9 +83,16 @@ main() {
         expect(flagValue, true);
       });
 
+      test('--help prevents command from executing', () {
+        new SimpleScript(() {
+          _happened = true;
+        }).execute(['--help']);
+        expect(_happened, false);
+      });
+
     });
 
-    group('withCommands', () {
+    group('CommandScript', () {
 
       Script unit;
 
